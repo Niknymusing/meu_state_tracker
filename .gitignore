@@ -1,0 +1,22 @@
+# Build artifacts
+dist-newstyle/
+cabal.project.local
+cabal.project.local~
+
+# Specification files - keep private
+meu_framework_spec.md
+meu_system_tracker_haskell.md
+
+# Validation and temporary directories
+*_validation/
+*_verification_test/
+
+# Editor and OS files
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
