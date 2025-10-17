@@ -1,6 +1,6 @@
 # MEU Framework Workspace State Tracker
 
-A foundational Haskell implementation of the Workspace State Tracker component for the Model-Execute-Update (MEU) framework, providing structured management of MEU triplets, registries, and dataflow orchestration for AI-assisted software development workflows.
+A POC Haskell implementation of the Workspace State Tracker component for the Model-Execute-Update (MEU) framework, providing structured management of MEU triplets, registries, and dataflow orchestration for AI-assisted software development workflows.
 
 ## Overview
 
