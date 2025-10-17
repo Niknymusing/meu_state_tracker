@@ -24,7 +24,7 @@ The WS State Tracker is the orchestrator of a MEU development process, providing
 4. **System Evolution**: Support refinement (task decomposition) and coarsening (consolidation) transforms
 5. **Verification Integration**: Interface with geometric logic and SMT-based verification systems
 
-### Architecture Highlights**
+### Haskell Implementation
 
 - **GADTs**: Type-safe MEU triplet domains with phantom types
 - **STM**: Software Transactional Memory for concurrent registry operations
