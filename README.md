@@ -4,7 +4,7 @@ A POC Haskell implementation of the Workspace State Tracker component for the Mo
 
 ## Overview
 
-The MEU Framework Workspace State Tracker (WS State Tracker) is the **central orchestration component** of the MEU framework.
+The MEU Framework Workspace State Tracker (WS State Tracker) is the **central orchestration component** of the MEU framework development process.
 
 ### MEU Framework Overview
 
