@@ -44,9 +44,10 @@ cabal build --dependencies-only
 echo "🏗️  Building MEU WS State Tracker..."
 cabal build
 
-# Run tests
-echo "🧪 Running tests..."
-cabal test
+# Run WS State Tracker benchmark
+echo "🧪 Running WS State Tracker benchmark..."
+cabal exec -- ghc --make test_runner.hs -i./test -package matrix -package vector
+./test_runner
 
 echo ""
 echo "🎉 Setup complete!"

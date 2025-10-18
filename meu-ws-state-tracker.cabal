@@ -90,7 +90,6 @@ test-suite meu-ws-tracker-test
     MEU.Core.TripletSpec
     MEU.WS.StateTrackerSpec
     MEU.Transforms.RefinementSpec
-    MEU.Performance.BenchmarkTests
     MEU.Performance.WSStateTrackerBenchmark
     MEU.Comprehensive.TestRunner
   hs-source-dirs: test
