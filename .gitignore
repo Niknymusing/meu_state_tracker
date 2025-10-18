@@ -6,6 +6,7 @@ cabal.project.local~
 # Specification files - keep private
 meu_framework_spec.md
 meu_system_tracker_haskell.md
+effectful_docs.md
 
 # Validation and temporary directories
 *_validation/
@@ -20,3 +21,4 @@ meu_system_tracker_haskell.md
 
 # Logs
 *.log
+meu_framework_spec.md

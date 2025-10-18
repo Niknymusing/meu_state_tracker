@@ -10,6 +10,7 @@ module MEU.Core.Triplet
   ) where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 import MEU.Core.Types
 
 -- | Create source triplet from project specification (placeholder)
