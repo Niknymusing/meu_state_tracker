@@ -93,7 +93,7 @@ data MEUTriplet m = MEUTriplet
 
 ### Dataflow Arrows
 
-MEU triplets communicate across its domains and with nested subtriplets via **type-safe dataflow arrows**:
+MEU triplets communicate across its domains and with nested subtriplets or ancestor supertriplets via **type-safe dataflow arrows**:
 
 - **f_{M,E} = (I: M→E, I*: E→M)**: Model deployment and configuration feedback
 - **f_{E,U} = (O: E→U, O*: U→E)**: Execution logging and environment adaptation
