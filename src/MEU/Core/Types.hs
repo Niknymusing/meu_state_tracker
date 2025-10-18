@@ -83,6 +83,25 @@ module MEU.Core.Types
   , DSLFunction(..)
   , InclusionType(..)
   , GeometricTheory(..)
+
+    -- * Enhanced GADT-based MEU Triplet with Effectful Stacking
+  , MEUTripletEff(..)
+  , DomainState(..)
+  , AdjointPair(..)
+  , InclusionOp(..)
+  , DataflowArrowCollection(..)
+  , EnhancedSUDPointer(..)
+  , EnhancedSUDEndpoint(..)
+  , MEUComputation
+
+    -- * Phantom Types for Capabilities
+  , Instantiated
+  , NotInstantiated
+  , Validated
+  , NotValidated
+  , Executable
+  , NotExecutable
+  , DomainValue
   ) where
 
 import Data.Text (Text)
@@ -600,22 +619,22 @@ data DataflowArrowCollection es = DataflowArrowCollection
   , arrowMU :: AdjointPair 'ModelDomain 'UpdateDomain es
   }
 
--- | SUD Endpoint for external function execution
-data SUDEndpointEff = SUDEndpointEff
-  { sudEndpointType :: Text -- "api", "function", "process", etc.
-  , sudEndpointAddress :: Text
-  , sudEndpointAuth :: Maybe Text
-  , sudEndpointTimeout :: Int -- milliseconds
+-- | Enhanced SUD Endpoint for effectful external function execution
+data EnhancedSUDEndpoint = EnhancedSUDEndpoint
+  { enhancedEndpointType :: Text -- "api", "function", "process", etc.
+  , enhancedEndpointAddress :: Text
+  , enhancedEndpointAuth :: Maybe Text
+  , enhancedEndpointTimeout :: Int -- milliseconds
   } deriving (Eq, Show, Generic)
 
 -- | Enhanced SUD Pointer with effectful execution
-data SUDPointerEff = SUDPointerEff
-  { sudPointerId :: Text
-  , sudEndpoint :: SUDEndpointEff
-  , sudSignature :: TypeSignature
-  , sudExecutor :: forall es. (IOE :> es) => [TypedValue] -> MEUComputation es (Either MEUError TypedValue)
-  , sudMetadata :: Map Text Text
-  , sudActive :: Bool
+data EnhancedSUDPointer = EnhancedSUDPointer
+  { enhancedPointerId :: Text
+  , enhancedEndpoint :: EnhancedSUDEndpoint
+  , enhancedSignature :: TypeSignature
+  , enhancedExecutor :: forall es. (IOE :> es) => [TypedValue] -> MEUComputation es (Either MEUError TypedValue)
+  , enhancedMetadata :: Map Text Text
+  , enhancedActive :: Bool
   }
 
 -- | GADT-based MEU Triplet with phantom types and effectful stacking
@@ -660,7 +679,7 @@ data MEUTripletEff
     , leafExecuteDomain :: DomainState 'ExecuteDomain Executable es
     , leafUpdateDomain :: DomainState 'UpdateDomain Validated es
     , leafDataflowArrows :: DataflowArrowCollection es
-    , leafSUDPointers :: Map Text SUDPointerEff -- Pointers to system under development
+    , leafSUDPointers :: Map Text EnhancedSUDPointer -- Pointers to system under development
     , leafExecutionResults :: Map Text TypedValue
     , leafGeometricTheory :: GeometricTheory
     , leafMetadata :: TripletMetadata

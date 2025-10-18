@@ -46,7 +46,7 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import GHC.Generics (Generic)
 
-import MEU.Core.Types hiding (DSLFunction(..))
+import MEU.Core.Types hiding (DSLFunction(..), DataflowArrowCollection(..))
 import MEU.WS.StateTracker hiding (executeDSLFunction)
 import MEU.DSL.DataflowArrows
 

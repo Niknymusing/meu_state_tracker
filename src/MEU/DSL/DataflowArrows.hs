@@ -54,7 +54,7 @@ import qualified Data.Text as T
 import Data.Time (getCurrentTime)
 import GHC.Generics (Generic)
 
-import MEU.Core.Types hiding (DataflowArrow(..), ArrowType(..), arrowType, arrowSourceDomain, arrowTargetDomain, arrowFunction)
+import MEU.Core.Types hiding (DataflowArrow(..), ArrowType(..), arrowType, arrowSourceDomain, arrowTargetDomain, arrowFunction, DataflowArrowCollection(..))
 import MEU.WS.StateTracker
 
 -- | Types of dataflow arrows as per MEU specification
@@ -271,19 +271,20 @@ executeModelToUpdate arrow input = do
 
 -- | Execute SUD function pointer and record results
 executeSUDFunction :: SUDPointer -> TypedValue -> IO (Either MEUError TypedValue)
-executeSUDFunction pointer input = do
+executeSUDFunction pointer@(SUDPointer{sudActive = active, sudEndpoint = endpoint, sudPointerId = pointerId}) input = do
   -- This is a placeholder - in real implementation would call external API/function
   -- For now, return a simple transformation based on the pointer type
-  if sudActive pointer
+  if active
     then do
       -- Simulate external function execution
-      let result = case sudEndpointType (sudEndpoint pointer) of
+      let SUDEndpoint{sudEndpointType = endpointType} = endpoint
+      let result = case endpointType of
             "api" -> TypedValue (getValueType input) (StringValue $ "API_RESULT_" <> extractStringValue input)
             "function" -> TypedValue (getValueType input) (StringValue $ "FUNC_RESULT_" <> extractStringValue input)
             "process" -> TypedValue (getValueType input) (StringValue $ "PROC_RESULT_" <> extractStringValue input)
             _ -> TypedValue UnitType NullValue
       return $ Right result
-    else return $ Left $ SUDExecutionError $ "SUD pointer inactive: " <> sudPointerId pointer
+    else return $ Left $ SUDExecutionError $ "SUD pointer inactive: " <> pointerId
 
 -- | Helper to extract string value (placeholder)
 extractStringValue :: TypedValue -> Text
