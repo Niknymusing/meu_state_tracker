@@ -78,7 +78,7 @@ cabal repl
 
 ### MEU Triplets
 
-Each software component is represented as a **MEU triplet** τ = (M_τ, E_τ, U_τ):
+Each modularly testable software component is represented as a **MEU triplet** τ = (M_τ, E_τ, U_τ):
 
 ```haskell
 data MEUTriplet m = MEUTriplet
