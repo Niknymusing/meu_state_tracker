@@ -1,6 +1,18 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module MEU.Core.Types
   ( -- * Core Type System
@@ -81,6 +93,12 @@ import qualified Data.Map.Strict as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
 import GHC.Generics (Generic)
+import Data.Kind (Type)
+import Data.Proxy (Proxy(..))
+import Effectful
+import Effectful.State.Static.Local
+import Effectful.Error.Static
+import Effectful.Reader.Static
 
 -- | Core type system for MEU framework DSL
 data MEUType
@@ -494,7 +512,161 @@ data DSLFunction = DSLFunction
   , functionImplementation :: Text -- TODO: Replace with actual function type
   } deriving (Eq, Show, Generic)
 
--- | Complete MEU triplet τ = (M_τ, E_τ, U_τ) according to specification
+-- ============================================================================
+-- GADT-based MEU Triplet with Phantom Types and Effectful Monadic Stacking
+-- ============================================================================
+
+-- | Phantom types for MEU triplet capabilities
+data Instantiated
+data NotInstantiated
+data Validated
+data NotValidated
+data Executable
+data NotExecutable
+
+-- | Effectful computation type for MEU operations
+type MEUComputation es a = Eff es a
+
+-- | Domain state with effectful monadic stacking
+data DomainState (d :: DomainType) (capability :: Type) es where
+  ModelDomainState ::
+    { modelDomainSpecs :: Map Text Text
+    , modelDomainDSLOps :: Map DSLPrimitiveId (MEUComputation es TypedValue)
+    , modelDomainTypes :: Set MEUType
+    , modelDomainInheritanceChain :: [TripletId]
+    } -> DomainState 'ModelDomain capability es
+
+  ExecuteDomainState ::
+    { executeDomainEnvironment :: ExecutionEnvironment
+    , executeDomainDeployedOps :: Map DSLPrimitiveId (MEUComputation es TypedValue)
+    , executeDomainResourceAlloc :: ResourceAllocation
+    , executeDomainInheritanceChain :: [TripletId]
+    } -> DomainState 'ExecuteDomain capability es
+
+  UpdateDomainState ::
+    { updateDomainVerifiers :: Map Text (MEUComputation es Bool)
+    , updateDomainGeometric :: GeometricTheory
+    , updateDomainCriteria :: [AcceptanceCriteria]
+    , updateDomainInheritanceChain :: [TripletId]
+    } -> DomainState 'UpdateDomain capability es
+
+-- | Type family for extracting value type from DomainState
+type family DomainValue (d :: DomainType) :: Type where
+  DomainValue 'ModelDomain = TypedValue
+  DomainValue 'ExecuteDomain = TypedValue
+  DomainValue 'UpdateDomain = Bool
+
+-- | Adjoint functor pair for dataflow arrows as per MEU specification
+data AdjointPair (source :: DomainType) (target :: DomainType) (es :: [Effect]) = AdjointPair
+  { leftAdjoint :: forall capability.
+      DomainState source capability es ->
+      MEUComputation es (DomainState target capability es)  -- Forward arrow
+  , rightAdjoint :: forall capability.
+      DomainState target capability es ->
+      MEUComputation es (DomainState source capability es) -- Backward arrow
+  , unit :: forall capability a.
+      a -> MEUComputation es (DomainState target capability es)      -- Unit of adjunction
+  , counit :: forall capability a.
+      MEUComputation es (DomainState source capability es) -> MEUComputation es a -- Counit
+  , identityMap :: forall a. a -> MEUComputation es a       -- Required identity n_{D1,D2}
+  }
+
+-- | Domain inclusion operation implementing ~D~> as per specification
+data InclusionOp (d :: DomainType) es = InclusionOp
+  { includeChild :: forall capability.
+      TripletId ->
+      DomainState d capability es ->
+      MEUComputation es (DomainState d capability es)
+  , compressContext ::
+      [TripletId] ->
+      MEUComputation es (Map Text Text) -- Compressed specifications
+  , validateInclusion ::
+      TripletId ->
+      MEUComputation es (Either MEUError ())
+  }
+
+-- | Dataflow arrow collection with effectful computations
+data DataflowArrowCollection es = DataflowArrowCollection
+  { -- f_{M,E} = (I: M→E, I*: E→M)
+    arrowME :: AdjointPair 'ModelDomain 'ExecuteDomain es
+  , arrowEM :: AdjointPair 'ExecuteDomain 'ModelDomain es
+
+    -- f_{E,U} = (O: E→U, O*: U→E)
+  , arrowEU :: AdjointPair 'ExecuteDomain 'UpdateDomain es
+  , arrowUE :: AdjointPair 'UpdateDomain 'ExecuteDomain es
+
+    -- f_{U,M} = (R: U→M, R*: M→U)
+  , arrowUM :: AdjointPair 'UpdateDomain 'ModelDomain es
+  , arrowMU :: AdjointPair 'ModelDomain 'UpdateDomain es
+  }
+
+-- | SUD Endpoint for external function execution
+data SUDEndpointEff = SUDEndpointEff
+  { sudEndpointType :: Text -- "api", "function", "process", etc.
+  , sudEndpointAddress :: Text
+  , sudEndpointAuth :: Maybe Text
+  , sudEndpointTimeout :: Int -- milliseconds
+  } deriving (Eq, Show, Generic)
+
+-- | Enhanced SUD Pointer with effectful execution
+data SUDPointerEff = SUDPointerEff
+  { sudPointerId :: Text
+  , sudEndpoint :: SUDEndpointEff
+  , sudSignature :: TypeSignature
+  , sudExecutor :: forall es. (IOE :> es) => [TypedValue] -> MEUComputation es (Either MEUError TypedValue)
+  , sudMetadata :: Map Text Text
+  , sudActive :: Bool
+  }
+
+-- | GADT-based MEU Triplet with phantom types and effectful stacking
+data MEUTripletEff
+  (instantiated :: Type)
+  (validated :: Type)
+  (executable :: Type)
+  (es :: [Effect]) where
+
+  -- Source triplet from project specification
+  SourceTripletEff ::
+    { sourceTripletId :: TripletId
+    , sourceModelDomain :: DomainState 'ModelDomain instantiated es
+    , sourceExecuteDomain :: DomainState 'ExecuteDomain instantiated es
+    , sourceUpdateDomain :: DomainState 'UpdateDomain instantiated es
+    , sourceDataflowArrows :: DataflowArrowCollection es
+    , sourceGeometricTheory :: GeometricTheory
+    , sourceMetadata :: TripletMetadata
+    } -> MEUTripletEff instantiated validated executable es
+
+  -- Branch triplet managing subtriplets
+  BranchTripletEff ::
+    { branchTripletId :: TripletId
+    , branchParentId :: TripletId
+    , branchChildren :: Set TripletId
+    , branchModelDomain :: DomainState 'ModelDomain instantiated es
+    , branchExecuteDomain :: DomainState 'ExecuteDomain instantiated es
+    , branchUpdateDomain :: DomainState 'UpdateDomain instantiated es
+    , branchDataflowArrows :: DataflowArrowCollection es
+    , branchInclusionOps :: (InclusionOp 'ModelDomain es, InclusionOp 'ExecuteDomain es, InclusionOp 'UpdateDomain es)
+    , branchRefinementFamily :: Set TripletId
+    , branchGeometricTheory :: GeometricTheory
+    , branchMetadata :: TripletMetadata
+    } -> MEUTripletEff instantiated validated executable es
+
+  -- Leaf triplet operating in execution environment
+  LeafTripletEff ::
+    { leafTripletId :: TripletId
+    , leafParentId :: TripletId
+    , leafAncestors :: [TripletId] -- Bottom-up inheritance chain
+    , leafModelDomain :: DomainState 'ModelDomain Instantiated es
+    , leafExecuteDomain :: DomainState 'ExecuteDomain Executable es
+    , leafUpdateDomain :: DomainState 'UpdateDomain Validated es
+    , leafDataflowArrows :: DataflowArrowCollection es
+    , leafSUDPointers :: Map Text SUDPointerEff -- Pointers to system under development
+    , leafExecutionResults :: Map Text TypedValue
+    , leafGeometricTheory :: GeometricTheory
+    , leafMetadata :: TripletMetadata
+    } -> MEUTripletEff Instantiated Validated Executable es
+
+-- | Original MEU triplet (kept for backward compatibility)
 data MEUTriplet = MEUTriplet
   { -- Core triplet identification
     tripletId :: TripletId
