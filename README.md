@@ -200,8 +200,8 @@ Acceptance criteria are formulated as geometric formulas within a first-order ge
 ### 5. **Refinement and Coarsening Transforms**
 
 **Refinement Transform ρ:**
-- Takes parent triplet τ_p implementing task t
-- Generates managing triplet τ_ref and children {τ_t1, ..., τ_tn}
+- Takes as input parent triplet τ_p implementing task t
+- Generates managing triplet τ_ref and subtask decomposition into children subtriplets {τ_t1, ..., τ_tn}
 - Implements inclusion operations (~M~>, ~E~>, ~U~>) for each child
 - Ensures non-redundancy and sufficiency-for-integration criteria
 
