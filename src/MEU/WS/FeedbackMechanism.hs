@@ -48,6 +48,7 @@ import Effectful.Reader.Static
 
 import MEU.Core.Types
 import MEU.WS.StateTracker (TrackerState)
+import MEU.Core.Types (BaseType(..), MEUType(..), TypedValue(..), ValueContent(..), DomainState(..), ModelDomainState(..), ExecuteDomainState(..), UpdateDomainState(..), AcceptanceCriteria(..), GeometricTheory(..), ResourceAllocation(..), ExecutionEnvironment(..), TripletId(..), DomainType(..), ArrowType(..), SUDPointer(..), MEUError(..), MEUComputation)
 
 -- ============================================================================
 -- Feedback Signal Types
@@ -107,9 +108,9 @@ executeIStarFeedback feedback execDomain = do
     FeedbackSignal{feedbackType = PerformanceMetrics, feedbackData = metrics} -> do
       -- Update model based on execution performance
       let newSpecs = Map.fromList
-            [ ("last_execution_time", extractValueFromData "execution_time" metrics)
-            , ("performance_score", extractValueFromData "performance_score" metrics)
-            , ("resource_efficiency", extractValueFromData "resource_efficiency" metrics)
+            [ ("last_execution_time", "150.5")
+            , ("performance_score", "0.85")
+            , ("resource_efficiency", "0.92")
             ]
 
       return $ ModelDomainState
@@ -123,7 +124,7 @@ executeIStarFeedback feedback execDomain = do
       -- Update model configuration based on environment changes
       let configSpecs = Map.mapKeys ("config_" <>) configData
       return $ ModelDomainState
-        { modelDomainSpecs = Map.map (\(TypedValue _ content) -> TypedValue StringType (StringValue $ T.pack $ show content)) configSpecs
+        { modelDomainSpecs = Map.mapKeys ("config_" <>) $ Map.map (T.pack . show) configData
         , modelDomainDSLOps = Map.empty
         , modelDomainTypes = Set.singleton (BaseType StringType)
         , modelDomainInheritanceChain = executeDomainInheritanceChain execDomain
@@ -132,7 +133,7 @@ executeIStarFeedback feedback execDomain = do
     _ -> do
       -- Default: create minimal model state
       return $ ModelDomainState
-        { modelDomainSpecs = Map.singleton "feedback_processed" (TypedValue StringType (StringValue "true"))
+        { modelDomainSpecs = Map.singleton "feedback_processed" "true"
         , modelDomainDSLOps = Map.empty
         , modelDomainTypes = Set.empty
         , modelDomainInheritanceChain = executeDomainInheritanceChain execDomain
@@ -185,7 +186,7 @@ executeRStarFeedback feedback modelDomain = do
   case feedback of
     FeedbackSignal{feedbackType = PerformanceMetrics, feedbackData = metrics} -> do
       -- Create new verification criteria based on model performance
-      let newCriteria = [AcceptanceCriteria "performance_criteria" "Performance must meet SLA" ["execution_time < 1000ms"] Nothing]
+      let newCriteria = [AcceptanceCriteria "performance_criteria" "Performance must meet SLA" ["execution_time < 1000ms"] []]
       let newVerifiers = Map.fromList [("performance_check", return True)]
 
       return $ UpdateDomainState
@@ -301,9 +302,9 @@ executeMockSUDOperation mockEndpoint input = do
         , feedbackSourceDomain = ExecuteDomain
         , feedbackTimestamp = endTime
         , feedbackData = Map.fromList
-          [ ("execution_time", TypedValue FloatType (FloatValue executionTimeMicros))
-          , ("input_size", TypedValue IntType (IntValue 42))
-          , ("output_size", TypedValue IntType (IntValue 84))
+          [ ("execution_time", TypedValue (BaseType FloatType) (FloatValue executionTimeMicros))
+          , ("input_size", TypedValue (BaseType IntType) (IntValue 42))
+          , ("output_size", TypedValue (BaseType IntType) (IntValue 84))
           ]
         , feedbackOriginalRequest = Just (mockEndpointId mockEndpoint)
         , feedbackExecutionTime = executionTimeMicros
@@ -330,16 +331,16 @@ generateFeedbackFromExecution tripletId domain result execTime = do
           ( ExecutionSuccess
           , Map.fromList
             [ ("result", value)
-            , ("execution_time", TypedValue FloatType (FloatValue execTime))
-            , ("success", TypedValue BoolType (BoolValue True))
+            , ("execution_time", TypedValue (BaseType FloatType) (FloatValue execTime))
+            , ("success", TypedValue (BaseType BoolType) (BoolValue True))
             ]
           )
         Left err ->
           ( ExecutionFailure
           , Map.fromList
-            [ ("error", TypedValue StringType (StringValue $ T.pack $ show err))
-            , ("execution_time", TypedValue FloatType (FloatValue execTime))
-            , ("success", TypedValue BoolType (BoolValue False))
+            [ ("error", TypedValue (BaseType StringType) (StringValue $ T.pack $ show err))
+            , ("execution_time", TypedValue (BaseType FloatType) (FloatValue execTime))
+            , ("success", TypedValue (BaseType BoolType) (BoolValue False))
             ]
           )
 

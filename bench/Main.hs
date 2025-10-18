@@ -2,6 +2,7 @@ module Main where
 
 import Criterion.Main
 import Control.DeepSeq (NFData, rnf)
+import MonadicStackingBenchmark
 import Data.UUID (UUID)
 import qualified Data.UUID.V4 as UUID
 import Data.Text (Text)
@@ -110,7 +111,16 @@ instance NFData Timestamp where
 
 
 main :: IO ()
-main = defaultMain
+main = do
+  -- First run the comprehensive monadic stacking benchmarks as requested
+  putStrLn "=== Running Comprehensive MEU Framework Monadic Stacking Benchmarks ==="
+  putStrLn "Testing depths 2-10 with 20-1000 triplets as specified"
+  results <- runMonadicStackingBenchmarks
+  putStrLn "\n=== Comprehensive Benchmarks Completed ==="
+
+  -- Then run the detailed Criterion benchmarks
+  putStrLn "\n=== Running Detailed Criterion Benchmarks ==="
+  defaultMain
   [ bgroup "MEU Core Types"
     [ bench "create TripletId" $ nfIO createTripletIdBench
     , bench "create 100 TripletIds" $ nfIO create100TripletIdsBench

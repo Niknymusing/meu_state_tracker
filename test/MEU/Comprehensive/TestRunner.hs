@@ -132,9 +132,9 @@ testIStarFeedback = do
         , feedbackSourceDomain = 'ExecuteDomain
         , feedbackTimestamp = timestamp
         , feedbackData = Map.fromList
-          [ ("execution_time", TypedValue FloatType (FloatValue 150.5))
-          , ("performance_score", TypedValue FloatType (FloatValue 0.85))
-          , ("resource_efficiency", TypedValue FloatType (FloatValue 0.92))
+          [ ("execution_time", TypedValue (BaseType FloatType) (FloatValue 150.5))
+          , ("performance_score", TypedValue (BaseType FloatType) (FloatValue 0.85))
+          , ("resource_efficiency", TypedValue (BaseType FloatType) (FloatValue 0.92))
           ]
         , feedbackOriginalRequest = Just "test_operation"
         , feedbackExecutionTime = 150.5
@@ -171,7 +171,7 @@ testOStarFeedback = do
         , feedbackSourceTriplet = TripletId UUID.nil
         , feedbackSourceDomain = UpdateDomain
         , feedbackTimestamp = timestamp
-        , feedbackData = Map.fromList [("success", TypedValue BoolType (BoolValue True))]
+        , feedbackData = Map.fromList [("success", TypedValue (BaseType BoolType) (BoolValue True))]
         , feedbackOriginalRequest = Just "verification_passed"
         , feedbackExecutionTime = 50.0
         }
@@ -205,7 +205,7 @@ testRStarFeedback = do
         , feedbackSourceTriplet = TripletId UUID.nil
         , feedbackSourceDomain = ModelDomain
         , feedbackTimestamp = timestamp
-        , feedbackData = Map.fromList [("current_performance", TypedValue FloatType (FloatValue 0.75))]
+        , feedbackData = Map.fromList [("current_performance", TypedValue (BaseType FloatType) (FloatValue 0.75))]
         , feedbackOriginalRequest = Just "model_update"
         , feedbackExecutionTime = 25.0
         }
@@ -312,8 +312,8 @@ verifyStateUpdates = do
         , feedbackSourceDomain = 'ExecuteDomain
         , feedbackTimestamp = timestamp
         , feedbackData = Map.fromList
-          [ ("iteration", TypedValue IntType (IntValue $ fromIntegral i))
-          , ("execution_time", TypedValue FloatType (FloatValue $ fromIntegral i * 10.5))
+          [ ("iteration", TypedValue (BaseType IntType) (IntValue $ fromIntegral i))
+          , ("execution_time", TypedValue (BaseType FloatType) (FloatValue $ fromIntegral i * 10.5))
           ]
         , feedbackOriginalRequest = Just $ "test_operation_" <> T.pack (show i)
         , feedbackExecutionTime = fromIntegral i * 10.5
@@ -352,7 +352,7 @@ createTestTriplet uuid =
     , leafParentId = TripletId UUID.nil
     , leafAncestors = []
     , leafModelDomain = ModelDomainState
-        { modelDomainSpecs = Map.singleton "test" (TypedValue StringType (StringValue "initial"))
+        { modelDomainSpecs = Map.singleton "test" "initial"
         , modelDomainDSLOps = Map.empty
         , modelDomainTypes = Set.singleton (BaseType StringType)
         , modelDomainInheritanceChain = []
