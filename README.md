@@ -43,7 +43,7 @@ The WS State Tracker is the orchestrator of a MEU development process, providing
 
 ```bash
 # Clone or copy the project
-cd ws_state_tracker
+cd meu_state_tracker
 
 # Option 1: Use automated setup script
 ./setup.sh
