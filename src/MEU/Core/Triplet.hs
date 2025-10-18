@@ -15,7 +15,7 @@ import MEU.Core.Types
 -- | Create source triplet from project specification (placeholder)
 createSourceTriplet :: ProjectSpecification -> IO Text
 createSourceTriplet projectSpec = do
-  return $ "Created source triplet for: " <> projectName projectSpec
+  return $ T.pack "Created source triplet for: " <> projectName projectSpec
 
 -- | Get triplet ID (placeholder)
 getTripletId :: Text -> TripletId
@@ -27,4 +27,4 @@ getTripletType _ = SourceTriplet
 
 -- | Get triplet domain information (placeholder)
 getTripletDomain :: Text -> DomainId -> Either MEUError Text
-getTripletDomain _ _ = Right "Domain placeholder"
+getTripletDomain _ _ = Right $ T.pack "Domain placeholder"

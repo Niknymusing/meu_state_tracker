@@ -148,13 +148,13 @@ validateRegistry _ = return True
 
 createCompositeRegistry :: Timestamp -> STM CompositeRegistry
 createCompositeRegistry _ = return CompositeRegistry
-  { compositeTypes = TypeRegistry (Registry "types" Map.empty)
-  , compositeValues = ValueRegistry (Registry "values" Map.empty)
-  , compositePrimitives = DSLPrimitiveRegistry (Registry "primitives" Map.empty)
-  , compositeTests = TestRegistry (Registry "tests" Map.empty)
-  , compositeVerifiers = VerifierRegistry (Registry "verifiers" Map.empty)
-  , compositeAxioms = AxiomRegistry (Registry "axioms" Map.empty)
-  , compositeTriplets = TripletRegistry (Registry "triplets" Map.empty)
+  { compositeTypes = TypeRegistry (Registry (T.pack "types") Map.empty)
+  , compositeValues = ValueRegistry (Registry (T.pack "values") Map.empty)
+  , compositePrimitives = DSLPrimitiveRegistry (Registry (T.pack "primitives") Map.empty)
+  , compositeTests = TestRegistry (Registry (T.pack "tests") Map.empty)
+  , compositeVerifiers = VerifierRegistry (Registry (T.pack "verifiers") Map.empty)
+  , compositeAxioms = AxiomRegistry (Registry (T.pack "axioms") Map.empty)
+  , compositeTriplets = TripletRegistry (Registry (T.pack "triplets") Map.empty)
   }
 
 buildValueMergeGraph :: ValueRegistry -> DSLPrimitiveRegistry -> STM ()
