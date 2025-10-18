@@ -221,7 +221,7 @@ runStackingTest depth = do
       _ <- performStackingOperations triplet level
       return (TripletId tripletId)
     return $ head levelTriplets
-  ) (TripletId UUID.nil) [1..depthLevels depth]
+    ) (TripletId UUID.nil) [1..depthLevels depth]
 
   return True
 
